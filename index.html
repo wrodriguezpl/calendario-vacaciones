@@ -106,7 +106,9 @@ const EMPLEADOS = [
     nombre: "David Salas",
     color: "#93C5FD",
     rangos: [
-      ["2025-11-24","2025-11-29"],["2025-12-26"],["2026-01-02"]
+      ["2025-11-24","2025-11-29"],
+      ["2025-12-26"],
+      ["2026-01-02"],
     ]
   },
   {
@@ -163,9 +165,20 @@ function parseISO(s){
   return new Date(y, m-1, d);
 }
 function rangoIncluye(rango, fecha){
-  const [ini, fin] = rango.map(parseISO);
-  const d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
-  return d >= ini && d <= fin;
+  const toDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const toRange = (r) => {
+    if (Array.isArray(r)) {
+      if (r.length === 1) return [parseISO(r[0]), parseISO(r[0])];     // un solo día
+      if (r.length >= 2) return [parseISO(r[0]), parseISO(r[1])];      // rango normal
+    }
+    return [null, null];
+  };
+
+  const [ini, fin] = toRange(rango);
+  if (!ini || !fin) return false;
+
+  const d = toDay(fecha);
+  return d >= toDay(ini) && d <= toDay(fin);
 }
 function empleadosEnFecha(date){
   const list = [];

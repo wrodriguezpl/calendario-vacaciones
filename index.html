@@ -74,42 +74,31 @@
 <body>
   <header>
     <h1>Calendario de Vacaciones — Fin de año</h1>
-    <div class="hint">Edita la sección de <strong>DATA</strong> dentro del archivo para agregar empleados y rangos. Formato de fecha: <code>YYYY-MM-DD</code>.</div>
   </header>
 
   <div class="wrapper">
-    <div class="controls">
-      <button id="btnPrint">Imprimir / Guardar PDF</button>
-      <span class="footnote">Hoy se resalta con borde. Semana inicia en <strong>lunes</strong>.</span>
-    </div>
-
     <section class="months" id="months"></section>
   </div>
 
 <script>
-/* ============================================
-   === DATA: empleados y vacaciones (EJEMPLO) ==
-   - Colores en hex/RGB/HSL.
-   - Puedes agregar tantos rangos como necesites.
-   - FECHAS INCLUSIVAS.
-   ============================================ */
+
 const EMPLEADOS = [
   {
-    nombre: "Ana López",
+    nombre: "Marielos",
     color: "#6EE7B7",
     rangos: [
-      ["2025-12-23","2025-12-30"]
+      ["2025-12-15","2025-12-16","2025-12-17","2025-12-18","2025-12-19","2025-12-20","2025-12-21","2025-12-22","2025-12-23"]
     ]
   },
   {
-    nombre: "Luis Pérez",
+    nombre: "David",
     color: "#93C5FD",
     rangos: [
-      ["2025-12-18","2025-12-27"]
+      ["2025-11-24","2025-11-25","2025-11-26","2025-11-27","2025-11-28","2025-11-29","2025-12-26","2026-01-02"]
     ]
   },
   {
-    nombre: "María García",
+    nombre: "Ángel",
     color: "#FCA5A5",
     rangos: [
       ["2025-11-28","2025-12-03"],
@@ -117,8 +106,15 @@ const EMPLEADOS = [
     ]
   },
   {
-    nombre: "Carlos Díaz",
+    nombre: "Joam",
     color: "#FDE68A",
+    rangos: [
+      ["2025-11-12"]
+    ]
+  },
+  {
+    nombre: "Javier",
+    color: "#FFFFFF",
     rangos: [
       ["2025-12-26","2026-01-03"]
     ]

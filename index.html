@@ -40,7 +40,7 @@
   .dow{padding:10px 8px; text-align:center; font-size:12px; color:#9aa6bd; background:#0f1320; border-right:1px solid #1f2430}
   .dow:last-child{border-right:none}
   .cell{
-    min-height:78px; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); padding:6px 6px 6px 6px; position:relative;
+    min-height:78px; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); padding:6px; position:relative;
   }
   .cell.dim{opacity:.45}
   .date{
@@ -69,30 +69,72 @@
     .cell{min-height:60px}
     .today{outline:none}
   }
-  /* asuetos */
-.holiday{
-  box-shadow: inset 0 0 0 2px rgba(255,120,120,.6), inset 0 0 30px rgba(255,0,0,.2);
-  background-image: linear-gradient(180deg, rgba(255,0,0,.08), transparent);
-}
-.holiday-tag{
-  background:#501010;
-  color:#ffbfbf;
-  border:1px solid #ff8888;
-}
-.legend-item.holiday-legend .dot{ background:#FFC95A; }
+
+  /* ===== Asuetos / Feriados ===== */
+  .holiday{
+    box-shadow: inset 0 0 0 2px rgba(255,120,120,.6), inset 0 0 30px rgba(255,0,0,.2);
+    background-image: linear-gradient(180deg, rgba(255,0,0,.08), transparent);
+  }
+  .holiday-tag{
+    position:absolute; left:6px; top:6px;
+    font-size:11px; padding:2px 8px; border-radius:8px;
+    background:#501010; color:#ffbfbf; border:1px solid #ff8888;
+    white-space:nowrap; max-width:70%; overflow:hidden; text-overflow:ellipsis;
+  }
+  .legend-item.holiday-legend .dot{ background:#FFC95A; }
+
+  /* ======= Responsive tweaks ======= */
+  @media (max-width: 860px){
+    .months{ grid-template-columns: 1fr; gap: 20px; }
+    .card header{ padding: 12px 14px; }
+    .legend{ padding: 8px 12px; gap: 8px; }
+    .dow{ font-size: 11px; padding: 8px 6px; }
+    .cell{ min-height: 64px; padding: 6px; }
+    .date{ font-size: 11px; padding: 2px 6px; top: 6px; right: 6px; }
+    .pills{ gap: 4px; margin-top: 22px; }
+    .pill{ padding: 2px 6px; font-size: 10.5px; }
+    .holiday-tag{ font-size: 10.5px; padding: 2px 6px; max-width: 65%; }
+  }
+  @media (max-width: 480px){
+    .wrapper{ padding: 0 14px; }
+    h1{ font-size: 20px; }
+    .card{ border-radius: 12px; }
+    .dow{ font-size: 10px; padding: 7px 4px; }
+    .cell{ min-height: 56px; padding: 6px 4px; }
+    .date{ font-size: 10px; padding: 2px 5px; }
+    .pills{ gap: 3px; margin-top: 20px; flex-direction: column; align-items: flex-start; }
+    .pill{ padding: 2px 5px; font-size: 10px; max-width:98%; }
+    .pill .swatch{ width: 8px; height: 8px; }
+    .holiday-tag{ font-size: 10px; padding: 2px 6px; max-width: 60%; }
+    .cell{ border-right: 1px solid rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.06); }
+  }
+
+  /* Modo compacto */
+  body.compacto .cell{ min-height: 48px; }
+  body.compacto .pills{ margin-top: 18px; gap: 3px; }
+  body.compacto .pill{ padding: 1px 5px; font-size: 10px; }
+  body.compacto .date{ font-size: 10px; padding: 1px 5px; }
+  body.compacto .holiday-tag{ font-size: 10px; padding: 2px 5px; }
 </style>
 </head>
 <body>
   <header>
     <h1>Calendario de Vacaciones — Fin de año</h1>
+    <div class="hint">Edita la sección de <strong>DATA</strong> dentro del archivo para agregar colaboradores y rangos. Formato: <code>YYYY-MM-DD</code> (inclusivo).</div>
   </header>
 
   <div class="wrapper">
+    <div class="controls">
+      <button id="btnPrint">Imprimir / Guardar PDF</button>
+      <button id="btnCompact">Modo compacto</button>
+      <span class="footnote">Hoy se resalta con borde. Semana inicia en <strong>lunes</strong>.</span>
+    </div>
+
     <section class="months" id="months"></section>
   </div>
 
 <script>
-
+/* =============== DATA =============== */
 const EMPLEADOS = [
   {
     nombre: "María Sarazúa",
@@ -106,76 +148,74 @@ const EMPLEADOS = [
     color: "#93C5FD",
     rangos: [
       ["2025-11-24","2025-11-29"],
-      ["2025-12-26"],
-      ["2026-01-02"],
+      ["2025-12-26"],        // día suelto
+      ["2026-01-02"],        // día suelto
     ]
   },
   {
     nombre: "Ángel Reyes",
     color: "#FCA5A5",
     rangos: [
-    
+      // agrega rangos aquí
     ]
   },
   {
     nombre: "Joam Lima",
     color: "#FDE68A",
     rangos: [
-      ["2025-11-12"]
+      ["2025-11-12"]        // día suelto
     ]
   },
   {
     nombre: "Javier Rodriguez",
     color: "#FFFFFF",
     rangos: [
-      
+      // agrega rangos aquí
     ]
   }
 ];
 
-// === Meses a mostrar (fin de año) ===
+// Meses a mostrar (fin de año)
 const MESES = [
   { year: 2025, month: 11 }, // Noviembre 2025
   { year: 2025, month: 12 }, // Diciembre 2025
   { year: 2026, month: 1 }   // Enero 2026
 ];
 
+// Feriados / asuetos
 const FERIADOS = [
   ["2025-12-25","Navidad"],
   ["2026-01-01","Año Nuevo"]
 ];
 
-/* ============================================
-   === LÓGICA DEL CALENDARIO ===================
-   ============================================ */
+/* ============ LÓGICA ============ */
 const monthsEl = document.getElementById("months");
 const HOY = new Date(); // Resaltado de hoy
 
-// util: formato YYYY-MM-DD con zona local
+// util: formato YYYY-MM-DD
 function fmt(d){
   const y=d.getFullYear();
   const m=String(d.getMonth()+1).padStart(2,"0");
   const day=String(d.getDate()).padStart(2,"0");
   return `${y}-${m}-${day}`;
 }
-// parse seguro (sin TZ)
+// parse local (sin TZ)
 function parseISO(s){
   const [y,m,d]=s.split("-").map(Number);
   return new Date(y, m-1, d);
 }
+// acepta ["ini","fin"] y ["única"]
 function rangoIncluye(rango, fecha){
   const toDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const toRange = (r) => {
     if (Array.isArray(r)) {
-      if (r.length === 1) return [parseISO(r[0]), parseISO(r[0])];     // un solo día
-      if (r.length >= 2) return [parseISO(r[0]), parseISO(r[1])];      // rango normal
+      if (r.length === 1) return [parseISO(r[0]), parseISO(r[0])]; // un día
+      if (r.length >= 2) return [parseISO(r[0]), parseISO(r[1])];  // rango normal
     }
     return [null, null];
   };
-
   const [ini, fin] = toRange(rango);
   if (!ini || !fin) return false;
-
   const d = toDay(fecha);
   return d >= toDay(ini) && d <= toDay(fin);
 }
@@ -204,31 +244,27 @@ function crearLeyenda(){
     frag.appendChild(item);
   }
   const fer = document.createElement("div");
-fer.className = "legend-item holiday-legend";
-fer.innerHTML = `<span class="dot"></span><span>Asueto</span>`;
-frag.appendChild(fer);
+  fer.className = "legend-item holiday-legend";
+  fer.innerHTML = `<span class="dot"></span><span>Asueto</span>`;
+  frag.appendChild(fer);
   return frag;
 }
 function construirMes({year, month}){
   const card = document.createElement("article");
   card.className = "card";
 
-  // Header con título
   const head = document.createElement("header");
   const title = document.createElement("div");
   title.className = "month-title";
   title.textContent = `${nombreMesES(month)} ${year}`;
   head.appendChild(title);
-
   card.appendChild(head);
 
-  // Leyenda
   const legend = document.createElement("div");
   legend.className = "legend";
   legend.appendChild( crearLeyenda() );
   card.appendChild(legend);
 
-  // Encabezados de días (lunes a domingo)
   const grid = document.createElement("div");
   grid.className = "grid";
   const dows = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
@@ -239,13 +275,10 @@ function construirMes({year, month}){
     grid.appendChild(el);
   });
 
-  // Calcular días
   const first = new Date(year, month-1, 1);
   const last = new Date(year, month, 0);
-  // índice de día: convertimos a lunes=0..domingo=6
-  const startOffset = (first.getDay()+6)%7; // getDay: dom=0..sab=6
+  const startOffset = (first.getDay()+6)%7; // lunes=0..domingo=6
 
-  // Relleno del mes anterior
   const prevLast = new Date(year, month-1, 0);
   for(let i=0; i<startOffset; i++){
     const dayNum = prevLast.getDate() - (startOffset - 1 - i);
@@ -253,14 +286,12 @@ function construirMes({year, month}){
     grid.appendChild(celdaDia(d, true));
   }
 
-  // Días del mes actual
   for(let day=1; day<=last.getDate(); day++){
     const d = new Date(year, month-1, day);
     grid.appendChild(celdaDia(d, false));
   }
 
-  // Relleno del siguiente mes para completar filas
-  const filled = grid.children.length - 7; // sin cabeceras
+  const filled = grid.children.length - 7;
   const rem = filled % 7 === 0 ? 0 : 7 - (filled % 7);
   for(let i=1; i<=rem; i++){
     const d = new Date(year, month, i);
@@ -270,18 +301,22 @@ function construirMes({year, month}){
   card.appendChild(grid);
   return card;
 }
+function feriadoEnFecha(date){
+  const key = fmt(date);
+  return FERIADOS.find(([d]) => d === key);
+}
 function celdaDia(date, dim=false){
   const cell = document.createElement("div");
   cell.className = "cell" + (dim ? " dim" : "");
 
   const fer = feriadoEnFecha(date);
-if (fer){
-  cell.classList.add("holiday");
-  const tag = document.createElement("div");
-  tag.className = "holiday-tag";
-  tag.textContent = fer[1]; // etiqueta (Navidad, Año Nuevo, etc.)
-  cell.appendChild(tag);
-}
+  if (fer){
+    cell.classList.add("holiday");
+    const tag = document.createElement("div");
+    tag.className = "holiday-tag";
+    tag.textContent = fer[1];
+    cell.appendChild(tag);
+  }
 
   const isToday = fmt(date) === fmt(HOY);
   if(isToday) cell.classList.add("today");
@@ -295,7 +330,6 @@ if (fer){
   if(list.length){
     const pills = document.createElement("div");
     pills.className = "pills";
-
     const maxShown = 3;
     list.slice(0, maxShown).forEach(e=>{
       const pill = document.createElement("span");
@@ -314,17 +348,15 @@ if (fer){
   }
   return cell;
 }
-function feriadoEnFecha(date){
-  const key = fmt(date);                 // usa el mismo fmt YYYY-MM-DD
-  return FERIADOS.find(([d]) => d === key); // devuelve [fecha, etiqueta] o undefined
-}
 
 // Render
 MESES.forEach(m => monthsEl.appendChild( construirMes(m) ));
 
-// Print
-document.getElementById("btnPrint").addEventListener("click", () => window.print());
-
+// Botones (seguros si no existen)
+document.getElementById("btnPrint")?.addEventListener("click", () => window.print());
+document.getElementById("btnCompact")?.addEventListener("click", () => {
+  document.body.classList.toggle("compacto");
+});
 </script>
 </body>
 </html>

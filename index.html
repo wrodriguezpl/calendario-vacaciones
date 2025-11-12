@@ -69,6 +69,18 @@
     .cell{min-height:60px}
     .today{outline:none}
   }
+  /* asuetos */
+.holiday{
+  box-shadow: inset 0 0 0 2px rgba(255,196,88,.45), inset 0 0 30px rgba(255,221,153,.16);
+  background-image: linear-gradient(180deg, rgba(255,215,130,.07), transparent);
+}
+.holiday-tag{
+  position:absolute; left:6px; top:6px;
+  font-size:11px; padding:2px 8px; border-radius:8px;
+  background:#3b2a10; color:#ffdfa6; border:1px solid #8a6418;
+  white-space:nowrap; max-width:70%; overflow:hidden; text-overflow:ellipsis;
+}
+.legend-item.holiday-legend .dot{ background:#FFC95A; }
 </style>
 </head>
 <body>
@@ -84,35 +96,35 @@
 
 const EMPLEADOS = [
   {
-    nombre: "Marielos Sarazúa",
+    nombre: "María Sarazúa",
     color: "#6EE7B7",
     rangos: [
       ["2025-12-15","2025-12-23"]
     ]
   },
   {
-    nombre: "David",
+    nombre: "David Salas",
     color: "#93C5FD",
     rangos: [
       ["2025-11-24","2025-11-29"],["2025-12-26"],["2026-01-02"]
     ]
   },
   {
-    nombre: "Ángel",
+    nombre: "Ángel Reyes",
     color: "#FCA5A5",
     rangos: [
     
     ]
   },
   {
-    nombre: "Joam",
+    nombre: "Joam Lima",
     color: "#FDE68A",
     rangos: [
       ["2025-11-12"]
     ]
   },
   {
-    nombre: "Javier",
+    nombre: "Javier Rodriguez",
     color: "#FFFFFF",
     rangos: [
       
@@ -125,6 +137,13 @@ const MESES = [
   { year: 2025, month: 11 }, // Noviembre 2025
   { year: 2025, month: 12 }, // Diciembre 2025
   { year: 2026, month: 1 }   // Enero 2026
+];
+
+const FERIADOS = [
+  ["2025-12-24","Nochebuena"],
+  ["2025-12-25","Navidad"],
+  ["2025-12-31","Fin de año"],
+  ["2026-01-01","Año Nuevo"]
 ];
 
 /* ============================================
@@ -146,10 +165,9 @@ function parseISO(s){
   return new Date(y, m-1, d);
 }
 function rangoIncluye(rango, fecha){
-  const [ini, fin] = rango;
-  const dIni = typeof ini === "string" ? parseISO(ini) : ini;
-  const dFin = typeof fin === "string" ? parseISO(fin) : fin;
-  return fecha >= dIni && fecha <= dFin;
+  const [ini, fin] = rango.map(parseISO);
+  const d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  return d >= ini && d <= fin;
 }
 function empleadosEnFecha(date){
   const list = [];
@@ -175,6 +193,10 @@ function crearLeyenda(){
     item.innerHTML = `<span class="dot" style="background:${e.color}"></span><span>${e.nombre}</span>`;
     frag.appendChild(item);
   }
+  const fer = document.createElement("div");
+fer.className = "legend-item holiday-legend";
+fer.innerHTML = `<span class="dot"></span><span>Feriado / Asueto</span>`;
+frag.appendChild(fer);
   return frag;
 }
 function construirMes({year, month}){
@@ -242,6 +264,15 @@ function celdaDia(date, dim=false){
   const cell = document.createElement("div");
   cell.className = "cell" + (dim ? " dim" : "");
 
+  const fer = feriadoEnFecha(date);
+if (fer){
+  cell.classList.add("holiday");
+  const tag = document.createElement("div");
+  tag.className = "holiday-tag";
+  tag.textContent = fer[1]; // etiqueta (Navidad, Año Nuevo, etc.)
+  cell.appendChild(tag);
+}
+
   const isToday = fmt(date) === fmt(HOY);
   if(isToday) cell.classList.add("today");
 
@@ -272,6 +303,10 @@ function celdaDia(date, dim=false){
     cell.appendChild(pills);
   }
   return cell;
+}
+function feriadoEnFecha(date){
+  const key = fmt(date);                 // usa el mismo fmt YYYY-MM-DD
+  return FERIADOS.find(([d]) => d === key); // devuelve [fecha, etiqueta] o undefined
 }
 
 // Render

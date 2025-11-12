@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calendario de Vacaciones – Fin de año</title>
+<style>
+  :root{
+    --bg:#0b0c10; --panel:#111318; --soft:#1a1d25; --muted:#7a869a; --text:#e9eef7; --accent:#62d4ff;
+    --grid:#232836; --today:#2a3347; --pill:#121722;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    background:linear-gradient(180deg, #0b0c10, #0f1420 40%, #0b0c10); color:var(--text);
+  }
+  header{
+    padding:24px 20px 6px; max-width:1200px; margin:auto;
+  }
+  h1{margin:0 0 8px; font-size:clamp(20px, 3vw, 28px)}
+  .hint{color:var(--muted); font-size:14px}
+  .wrapper{max-width:1200px; margin:12px auto 40px; padding:0 20px}
+  .months{display:grid; gap:16px; grid-template-columns: repeat( auto-fit, minmax(320px, 1fr) );}
+  .card{
+    background:linear-gradient(180deg, var(--panel), var(--soft)); border:1px solid #1f2430; border-radius:16px; overflow:hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .card header{padding:14px 16px; display:flex; align-items:center; justify-content:space-between; background:#0f1320}
+  .month-title{font-weight:600; letter-spacing:.3px}
+  .legend{
+    display:flex; gap:10px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid #1f2430; background:#0f1320;
+  }
+  .legend-item{display:flex; align-items:center; gap:8px; font-size:12px; color:#c9d3e3}
+  .dot{width:12px; height:12px; border-radius:50%; outline:1px solid rgba(255,255,255,.2)}
+  .grid{
+    border-top:1px solid #1f2430;
+    display:grid; grid-template-columns: repeat(7, 1fr);
+    background: conic-gradient(from 180deg at 50% 50%, #10131b, #141826);
+  }
+  .dow{padding:10px 8px; text-align:center; font-size:12px; color:#9aa6bd; background:#0f1320; border-right:1px solid #1f2430}
+  .dow:last-child{border-right:none}
+  .cell{
+    min-height:78px; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); padding:6px 6px 6px 6px; position:relative;
+  }
+  .cell.dim{opacity:.45}
+  .date{
+    font-size:12px; color:#9fb0d2; position:absolute; top:6px; right:6px; padding:2px 6px; border-radius:999px; background:#0e1320; border:1px solid #20263a;
+  }
+  .today{outline:2px solid var(--accent); outline-offset:-2px; background:linear-gradient(180deg, var(--today), #1a2235)}
+  .pills{display:flex; gap:6px; flex-wrap:wrap; margin-top:24px}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; padding:3px 8px; font-size:11px; border-radius:999px;
+    background:var(--pill); border:1px solid rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis;
+  }
+  .pill .swatch{width:10px; height:10px; border-radius:50%; flex:0 0 auto; outline:1px solid rgba(255,255,255,.25)}
+  .more{opacity:.9; border-style:dashed}
+  .footnote{font-size:12px; color:#8fa1ba; margin-top:10px}
+  .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:8px 0 12px}
+  button{
+    background:#182034; border:1px solid #28324a; color:#dfe8fb; padding:8px 12px; border-radius:10px; cursor:pointer;
+  }
+  button:hover{filter:brightness(1.08)}
+  @media print{
+    body{background:#fff; color:#000}
+    .card{box-shadow:none; border-color:#ccc}
+    .legend{background:#fff}
+    header, .hint, .controls{display:none}
+    .cell{min-height:60px}
+    .today{outline:none}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Calendario de Vacaciones — Fin de año</h1>
+    <div class="hint">Edita la sección de <strong>DATA</strong> dentro del archivo para agregar empleados y rangos. Formato de fecha: <code>YYYY-MM-DD</code>.</div>
+  </header>
+
+  <div class="wrapper">
+    <div class="controls">
+      <button id="btnPrint">Imprimir / Guardar PDF</button>
+      <span class="footnote">Hoy se resalta con borde. Semana inicia en <strong>lunes</strong>.</span>
+    </div>
+
+    <section class="months" id="months"></section>
+  </div>
+
+<script>
+/* ============================================
+   === DATA: empleados y vacaciones (EJEMPLO) ==
+   - Colores en hex/RGB/HSL.
+   - Puedes agregar tantos rangos como necesites.
+   - FECHAS INCLUSIVAS.
+   ============================================ */
+const EMPLEADOS = [
+  {
+    nombre: "Ana López",
+    color: "#6EE7B7",
+    rangos: [
+      ["2025-12-23","2025-12-30"]
+    ]
+  },
+  {
+    nombre: "Luis Pérez",
+    color: "#93C5FD",
+    rangos: [
+      ["2025-12-18","2025-12-27"]
+    ]
+  },
+  {
+    nombre: "María García",
+    color: "#FCA5A5",
+    rangos: [
+      ["2025-11-28","2025-12-03"],
+      ["2026-01-02","2026-01-07"]
+    ]
+  },
+  {
+    nombre: "Carlos Díaz",
+    color: "#FDE68A",
+    rangos: [
+      ["2025-12-26","2026-01-03"]
+    ]
+  }
+];
+
+// === Meses a mostrar (fin de año) ===
+const MESES = [
+  { year: 2025, month: 11 }, // Noviembre 2025
+  { year: 2025, month: 12 }, // Diciembre 2025
+  { year: 2026, month: 1 }   // Enero 2026
+];
+
+/* ============================================
+   === LÓGICA DEL CALENDARIO ===================
+   ============================================ */
+const monthsEl = document.getElementById("months");
+const HOY = new Date(); // Resaltado de hoy
+
+// util: formato YYYY-MM-DD con zona local
+function fmt(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+// parse seguro (sin TZ)
+function parseISO(s){
+  const [y,m,d]=s.split("-").map(Number);
+  return new Date(y, m-1, d);
+}
+function rangoIncluye(rango, fecha){
+  const [ini, fin] = rango;
+  const dIni = typeof ini === "string" ? parseISO(ini) : ini;
+  const dFin = typeof fin === "string" ? parseISO(fin) : fin;
+  return fecha >= dIni && fecha <= dFin;
+}
+function empleadosEnFecha(date){
+  const list = [];
+  for(const e of EMPLEADOS){
+    if(e.rangos?.some(r => rangoIncluye(r, date))){
+      list.push(e);
+    }
+  }
+  return list;
+}
+function iniciales(nombre){
+  return nombre.split(/\s+/).slice(0,2).map(p=>p[0]).join("").toUpperCase();
+}
+function nombreMesES(idx){
+  const nombres = [,"enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  return nombres[idx];
+}
+function crearLeyenda(){
+  const frag = document.createDocumentFragment();
+  for(const e of EMPLEADOS){
+    const item = document.createElement("div");
+    item.className = "legend-item";
+    item.innerHTML = `<span class="dot" style="background:${e.color}"></span><span>${e.nombre}</span>`;
+    frag.appendChild(item);
+  }
+  return frag;
+}
+function construirMes({year, month}){
+  const card = document.createElement("article");
+  card.className = "card";
+
+  // Header con título
+  const head = document.createElement("header");
+  const title = document.createElement("div");
+  title.className = "month-title";
+  title.textContent = `${nombreMesES(month)} ${year}`;
+  head.appendChild(title);
+
+  card.appendChild(head);
+
+  // Leyenda
+  const legend = document.createElement("div");
+  legend.className = "legend";
+  legend.appendChild( crearLeyenda() );
+  card.appendChild(legend);
+
+  // Encabezados de días (lunes a domingo)
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  const dows = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  dows.forEach(d => {
+    const el = document.createElement("div");
+    el.className = "dow";
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  // Calcular días
+  const first = new Date(year, month-1, 1);
+  const last = new Date(year, month, 0);
+  // índice de día: convertimos a lunes=0..domingo=6
+  const startOffset = (first.getDay()+6)%7; // getDay: dom=0..sab=6
+
+  // Relleno del mes anterior
+  const prevLast = new Date(year, month-1, 0);
+  for(let i=0; i<startOffset; i++){
+    const dayNum = prevLast.getDate() - (startOffset - 1 - i);
+    const d = new Date(prevLast.getFullYear(), prevLast.getMonth(), dayNum);
+    grid.appendChild(celdaDia(d, true));
+  }
+
+  // Días del mes actual
+  for(let day=1; day<=last.getDate(); day++){
+    const d = new Date(year, month-1, day);
+    grid.appendChild(celdaDia(d, false));
+  }
+
+  // Relleno del siguiente mes para completar filas
+  const filled = grid.children.length - 7; // sin cabeceras
+  const rem = filled % 7 === 0 ? 0 : 7 - (filled % 7);
+  for(let i=1; i<=rem; i++){
+    const d = new Date(year, month, i);
+    grid.appendChild(celdaDia(d, true));
+  }
+
+  card.appendChild(grid);
+  return card;
+}
+function celdaDia(date, dim=false){
+  const cell = document.createElement("div");
+  cell.className = "cell" + (dim ? " dim" : "");
+
+  const isToday = fmt(date) === fmt(HOY);
+  if(isToday) cell.classList.add("today");
+
+  const badge = document.createElement("div");
+  badge.className = "date";
+  badge.textContent = date.getDate();
+  cell.appendChild(badge);
+
+  const list = empleadosEnFecha(date);
+  if(list.length){
+    const pills = document.createElement("div");
+    pills.className = "pills";
+
+    const maxShown = 3;
+    list.slice(0, maxShown).forEach(e=>{
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      pill.innerHTML = `<span class="swatch" style="background:${e.color}"></span>${iniciales(e.nombre)}`;
+      pill.title = e.nombre;
+      pills.appendChild(pill);
+    });
+    if(list.length > maxShown){
+      const more = document.createElement("span");
+      more.className = "pill more";
+      more.textContent = `+${list.length - maxShown}`;
+      pills.appendChild(more);
+    }
+    cell.appendChild(pills);
+  }
+  return cell;
+}
+
+// Render
+MESES.forEach(m => monthsEl.appendChild( construirMes(m) ));
+
+// Print
+document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+</script>
+</body>
+</html>

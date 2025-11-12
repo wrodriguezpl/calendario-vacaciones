@@ -140,9 +140,7 @@ const MESES = [
 ];
 
 const FERIADOS = [
-  ["2025-12-24","Nochebuena"],
   ["2025-12-25","Navidad"],
-  ["2025-12-31","Fin de año"],
   ["2026-01-01","Año Nuevo"]
 ];
 
@@ -195,7 +193,7 @@ function crearLeyenda(){
   }
   const fer = document.createElement("div");
 fer.className = "legend-item holiday-legend";
-fer.innerHTML = `<span class="dot"></span><span>Feriado / Asueto</span>`;
+fer.innerHTML = `<span class="dot"></span><span>Asueto</span>`;
 frag.appendChild(fer);
   return frag;
 }
